@@ -70,9 +70,7 @@ func persistDistancesToFirestore(ctx context.Context, userDistances *[]UserDista
 	for _, userDistance := range *userDistances {
 		log.Printf("userid: %v", userDistance.UserID)
 		log.Printf("distance: %v", userDistance.Distance)
-		wr, err := client.Collection("distances").Doc(userDistance.UserID).Set(ctx, map[string]interface{}{
-			"distance": userDistance.Distance,
-		})
+		wr, err := client.Collection("distances").Doc(userDistance.UserID).Set(ctx, userDistance)
 		if err != nil {
 			return nil, err
 		}

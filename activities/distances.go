@@ -11,7 +11,6 @@ import (
 func getTotalDistanceFromStravaActivities(activities []Activity) float64 {
 	var sumDistance float64
 	for _, a := range activities {
-		log.Printf("distance: %v", a.Distance)
 		sumDistance += a.Distance
 	}
 
@@ -35,8 +34,10 @@ func getDistanceForUser(ctx context.Context, user *User) (float64, error) {
 }
 
 type UserDistance struct {
-	Distance float64 `json:"distance"`
-	UserID   string  `json:"userId"`
+	Distance  float64 `json:"distance"`
+	UserID    string  `json:"userId"`
+	FirstName string  `json:"firstname"`
+	LastName  string  `json:"lastname"`
 }
 
 func getDistancesForUsers(ctx context.Context, userIter []*firestore.DocumentSnapshot) (*[]UserDistance, error) {
@@ -56,6 +57,8 @@ func getDistancesForUsers(ctx context.Context, userIter []*firestore.DocumentSna
 
 		userDistance.Distance = sumDistance
 		userDistance.UserID = strconv.FormatInt(user.Athlete.ID, 10)
+		userDistance.FirstName = user.Athlete.FirstName
+		userDistance.LastName = user.Athlete.LastName
 
 		userDistances = append(userDistances, userDistance)
 	}

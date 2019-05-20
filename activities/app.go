@@ -54,15 +54,12 @@ func handleActivites(w http.ResponseWriter, r *http.Request) {
 
 	var userDistances []UserDistance
 
-	for i, userDistanceDoc := range userDistancesDocs {
+	for _, userDistanceDoc := range userDistancesDocs {
 		var userDinstance UserDistance
 
 		userDistanceDoc.DataTo(&userDinstance)
 
 		userDinstance.UserID = userDistanceDoc.Ref.ID
-
-		log.Printf("i: %v", i)
-		log.Printf("i: %v", userDinstance.UserID)
 
 		userDistances = append(userDistances, userDinstance)
 	}
