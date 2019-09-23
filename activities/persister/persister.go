@@ -1,24 +1,26 @@
-package activities
+package persister
 
 import (
 	"context"
 	"fmt"
 	"log"
+	"os"
 
 	"cloud.google.com/go/firestore"
 	"google.golang.org/api/option"
 	"google.golang.org/appengine"
 	"google.golang.org/appengine/urlfetch"
 
+	"github.com/mcmhav/strava-fetcher/activities/distances"
 	"google.golang.org/api/sheets/v4"
 )
 
-var spreadsheetID = "1K-ZVHbi-S7PK3l95fhEcAhCGZ3vy9CaPaR2fdff-UQs"
-var readRange = "distances!A2:E"
-var developerKey = "AIzaSyCws6S6MtVP8R84ZXeOwdF-9BeC2DS3sGk"
-var aud = "688928621123-2vd96hff89aur35c7n200i6dvr6vkrji.apps.googleusercontent.com"
+var spreadsheetID = os.Getenv("SPREADSHEET_ID")
+var readRange = os.Getenv("READ_RANGE")
+var developerKey = os.Getenv("DEVELOPER_KEY")
+var aud = os.Getenv("GCP_AUD")
 
-func persistDistancesToSpreadsheet(ctx context.Context) (*string, error) {
+func PersistDistancesToSpreadsheet(ctx context.Context) (*string, error) {
 	// ctxRai := context.WithValue(ctx, oauth2.HTTPClient, &http.Client{
 	// 	Transport: &transport.APIKey{Key: developerKey},
 	// })
@@ -59,7 +61,7 @@ func persistDistancesToSpreadsheet(ctx context.Context) (*string, error) {
 	return &rai, nil
 }
 
-func persistDistancesToFirestore(ctx context.Context, userDistances *[]UserDistance) (*string, error) {
+func PersistDistancesToFirestore(ctx context.Context, userDistances *[]distances.UserDistance) (*string, error) {
 	projectID := appengine.AppID(ctx)
 	client, err := firestore.NewClient(ctx, projectID)
 	if err != nil {

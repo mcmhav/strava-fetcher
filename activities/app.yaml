@@ -1,10 +1,11 @@
-runtime: go
-api_version: go1
+runtime: go112
 
 service: strava-activites
 
-handlers:
-  - url: /.*
-    script: _go_app
-
 env_variables:
+  STRAVA_CLIENT_ID: '35183'
+  STRAVA_CLIENT_SECRET: '2a011442d806c32248ede63b5b1e03887774d616'
+  SPREADSHEET_ID: '1K-ZVHbi-S7PK3l95fhEcAhCGZ3vy9CaPaR2fdff-UQs'
+  DEVELOPER_KEY: 'AIzaSyCws6S6MtVP8R84ZXeOwdF-9BeC2DS3sGk'
+  GCP_AUD: '688928621123-2vd96hff89aur35c7n200i6dvr6vkrji.apps.googleusercontent.com'
+  READ_RANGE: 'distances!A2:E'

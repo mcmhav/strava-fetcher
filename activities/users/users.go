@@ -1,4 +1,4 @@
-package activities
+package users
 
 import (
 	"bytes"
@@ -47,7 +47,7 @@ type User struct {
 	Athlete      Athlete
 }
 
-func getUsers(ctx context.Context) ([]*firestore.DocumentSnapshot, error) {
+func GetUsers(ctx context.Context) ([]*firestore.DocumentSnapshot, error) {
 	projectID := appengine.AppID(ctx)
 	client, err := firestore.NewClient(ctx, projectID)
 	if err != nil {
@@ -63,7 +63,7 @@ func getUsers(ctx context.Context) ([]*firestore.DocumentSnapshot, error) {
 	return users, nil
 }
 
-func refreshTokenForUser(ctx context.Context, user *User) (*User, error) {
+func RefreshTokenForUser(ctx context.Context, user *User) (*User, error) {
 	log.Println("refreshing token")
 	client := urlfetch.Client(ctx)
 
@@ -99,10 +99,10 @@ func refreshTokenForUser(ctx context.Context, user *User) (*User, error) {
 	return user, nil
 }
 
-func checkIfTokenIsExpired(ctx context.Context, user *User) (*User, error) {
+func CheckIfTokenIsExpired(ctx context.Context, user *User) (*User, error) {
 	now := time.Now().UnixNano() / 1000000
 	if now > user.ExpiresAt {
-		user, err := refreshTokenForUser(ctx, user)
+		user, err := RefreshTokenForUser(ctx, user)
 		if err != nil {
 			return nil, err
 		}

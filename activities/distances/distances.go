@@ -1,4 +1,4 @@
-package activities
+package distances
 
 import (
 	"context"
@@ -6,9 +6,11 @@ import (
 	"strconv"
 
 	"cloud.google.com/go/firestore"
+	"github.com/mcmhav/strava-fetcher/activities/activities"
+	"github.com/mcmhav/strava-fetcher/activities/users"
 )
 
-func getTotalDistanceFromStravaActivities(activities []Activity) float64 {
+func getTotalDistanceFromStravaActivities(activities []activities.Activity) float64 {
 	var sumDistance float64
 	for _, a := range activities {
 		sumDistance += a.Distance
@@ -17,18 +19,18 @@ func getTotalDistanceFromStravaActivities(activities []Activity) float64 {
 	return sumDistance / 1000
 }
 
-func getDistanceForUser(ctx context.Context, user *User) (float64, error) {
-	user, err := checkIfTokenIsExpired(ctx, user)
+func getDistanceForUser(ctx context.Context, user *users.User) (float64, error) {
+	user, err := users.CheckIfTokenIsExpired(ctx, user)
 	if err != nil {
 		return -1, err
 	}
 	log.Printf(user.AccessToken)
-	activities, err := getActivitiesForUser(ctx, user)
+	stravaActivities, err := activities.GetActivitiesForUser(ctx, user)
 	if err != nil {
 		return -1, err
 	}
 
-	sumDistance := getTotalDistanceFromStravaActivities(*activities)
+	sumDistance := getTotalDistanceFromStravaActivities(*stravaActivities)
 
 	return sumDistance, nil
 }
@@ -40,11 +42,11 @@ type UserDistance struct {
 	LastName  string  `json:"lastname"`
 }
 
-func getDistancesForUsers(ctx context.Context, userIter []*firestore.DocumentSnapshot) (*[]UserDistance, error) {
+func GetDistancesForUsers(ctx context.Context, userIter []*firestore.DocumentSnapshot) (*[]UserDistance, error) {
 
 	var userDistances []UserDistance
 	for _, userDoc := range userIter {
-		var user User
+		var user users.User
 		userDoc.DataTo(&user)
 
 		sumDistance, err := getDistanceForUser(ctx, &user)

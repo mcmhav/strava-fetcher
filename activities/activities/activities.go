@@ -8,6 +8,7 @@ import (
 	"net/url"
 
 	"google.golang.org/appengine/urlfetch"
+	"github.com/mcmhav/strava-fetcher/activities/users"
 )
 
 var after = "1546297200"
@@ -33,7 +34,7 @@ type Activity struct {
 	Distance float64 `json:"distance"`
 }
 
-func getActivitiesForUser(ctx context.Context, user *User) (*[]Activity, error) {
+func GetActivitiesForUser(ctx context.Context, user *users.User) (*[]Activity, error) {
 	activitiesURL, err := getActivitiesURL()
 	var activites []Activity
 	if err != nil {
