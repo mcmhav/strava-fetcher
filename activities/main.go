@@ -15,10 +15,10 @@ import (
 )
 
 func handleFetchActivities(w http.ResponseWriter, r *http.Request) {
-	ctx := appengine.NewContext(r)
+	// ctx := appengine.NewContext(r)
+	ctx := r.Context()
 
 	userIter, err := users.GetUsers(ctx)
-	log.Printf("rairai")
 	if err != nil {
 		fmt.Fprintf(w, "Errorrr %v", err)
 		return
@@ -33,7 +33,7 @@ func handleFetchActivities(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintf(w, "Errorrr %v", err)
 		return
 	}
-	log.Printf(*response)
+	log.Println(*response)
 	fmt.Fprintf(w, "Activites handled, Distance:")
 }
 
@@ -41,10 +41,10 @@ func enableCors(w *http.ResponseWriter) {
 	(*w).Header().Set("Access-Control-Allow-Origin", "*")
 }
 
-func handleActivites(w http.ResponseWriter, r *http.Request) {
+func handleActivities(w http.ResponseWriter, r *http.Request) {
 	enableCors(&w)
 
-	ctx := appengine.NewContext(r)
+	ctx := r.Context()
 
 	projectID := appengine.AppID(ctx)
 	client, err := firestore.NewClient(ctx, projectID)
@@ -75,18 +75,30 @@ func handleActivites(w http.ResponseWriter, r *http.Request) {
 
 func addHandlers() {
 	http.HandleFunc("/fetchFromStrava", handleFetchActivities)
-	// http.HandleFunc("/Activities", handleActivities)
+	http.HandleFunc("/activites", handleActivities)
+}
+
+func indexHandler(w http.ResponseWriter, r *http.Request) {
+	if r.URL.Path != "/" {
+		http.NotFound(w, r)
+		return
+	}
+	fmt.Fprint(w, "Hello, World!")
 }
 
 func main() {
-	log.Printf("rairai")
+	log.SetFlags(log.LstdFlags | log.Lshortfile)
+
+	log.Println("rairai")
 	addHandlers()
+	http.HandleFunc("/", indexHandler)
+
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = "8080"
-		log.Printf("Defaulting to port %s", port)
+		log.Println("Defaulting to port", port)
 	}
 
-	log.Printf("Listening on port %s", port)
+	log.Println("Listening on port", port)
 	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%s", port), nil))
 }

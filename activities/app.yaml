@@ -2,6 +2,10 @@ runtime: go112
 
 service: strava-activites
 
+handlers:
+  - url: /.*
+    script: auto
+
 env_variables:
   STRAVA_CLIENT_ID: '35183'
   STRAVA_CLIENT_SECRET: '2a011442d806c32248ede63b5b1e03887774d616'

@@ -3,11 +3,12 @@ package activities
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 	"net/url"
+	"os"
 
-	"google.golang.org/appengine/urlfetch"
 	"github.com/mcmhav/strava-fetcher/activities/users"
 )
 
@@ -17,6 +18,7 @@ func getActivitiesURL() (*url.URL, error) {
 	var activitiesURL = "https://www.strava.com/api/v3/athlete/activities"
 	var url, err = url.Parse(activitiesURL)
 	if err != nil {
+		fmt.Fprintf(os.Stderr, "Got error when handling user: %v", err)
 		return url, err
 	}
 	q := url.Query()
@@ -38,12 +40,14 @@ func GetActivitiesForUser(ctx context.Context, user *users.User) (*[]Activity, e
 	activitiesURL, err := getActivitiesURL()
 	var activites []Activity
 	if err != nil {
+		fmt.Fprintf(os.Stderr, "Got error when handling user: %v", err)
 		return nil, err
 	}
-	client := urlfetch.Client(ctx)
+	client := http.Client{}
 
 	req, err := http.NewRequest("GET", activitiesURL.String(), nil)
 	if err != nil {
+		fmt.Fprintf(os.Stderr, "Got error when handling user: %v", err)
 		return nil, err
 	}
 
@@ -53,6 +57,7 @@ func GetActivitiesForUser(ctx context.Context, user *users.User) (*[]Activity, e
 
 	resp, err := client.Do(req)
 	if err != nil {
+		fmt.Fprintf(os.Stderr, "Got error when handling user: %v", err)
 		return nil, err
 	}
 

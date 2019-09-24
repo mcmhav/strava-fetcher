@@ -2,7 +2,9 @@ package distances
 
 import (
 	"context"
+	"fmt"
 	"log"
+	"os"
 	"strconv"
 
 	"cloud.google.com/go/firestore"
@@ -51,7 +53,8 @@ func GetDistancesForUsers(ctx context.Context, userIter []*firestore.DocumentSna
 
 		sumDistance, err := getDistanceForUser(ctx, &user)
 		if err != nil {
-			log.Fatalf("Got error when handling user: %v", err)
+			fmt.Fprintf(os.Stderr, "Got error when handling user: %v", err)
+			return nil, err
 		}
 		log.Printf("Distance for user: %v, %v", user.Athlete.FirstName, sumDistance)
 

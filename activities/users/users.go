@@ -4,13 +4,14 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"fmt"
 	"log"
+	"net/http"
 	"os"
 	"time"
 
 	"cloud.google.com/go/firestore"
 	"google.golang.org/appengine"
-	"google.golang.org/appengine/urlfetch"
 )
 
 var clientID = os.Getenv("STRAVA_CLIENT_ID")
@@ -51,6 +52,7 @@ func GetUsers(ctx context.Context) ([]*firestore.DocumentSnapshot, error) {
 	projectID := appengine.AppID(ctx)
 	client, err := firestore.NewClient(ctx, projectID)
 	if err != nil {
+		fmt.Fprintf(os.Stderr, "Got error when handling user: %v", err)
 		return nil, err
 	}
 	defer client.Close()
@@ -58,14 +60,16 @@ func GetUsers(ctx context.Context) ([]*firestore.DocumentSnapshot, error) {
 	userIter := client.Collection("users").Documents(ctx)
 	users, err := userIter.GetAll()
 	if err != nil {
+		fmt.Fprintf(os.Stderr, "Got error when handling user: %v", err)
 		return nil, err
 	}
 	return users, nil
 }
 
-func RefreshTokenForUser(ctx context.Context, user *User) (*User, error) {
+func refreshTokenForUser(ctx context.Context, user *User) (*User, error) {
 	log.Println("refreshing token")
-	client := urlfetch.Client(ctx)
+	// client := urlfetch.Client(ctx)
+	client := http.Client{}
 
 	type RefreshTokenResponse struct {
 		TokenType    string `json:"token_type"`
@@ -81,11 +85,13 @@ func RefreshTokenForUser(ctx context.Context, user *User) (*User, error) {
 	}
 	bytesRepresentation, err := json.Marshal(message)
 	if err != nil {
+		fmt.Fprintf(os.Stderr, "Got error when handling user: %v", err)
 		return nil, err
 	}
 
 	resp, err := client.Post("https://www.strava.com/oauth/token", "application/json", bytes.NewBuffer(bytesRepresentation))
 	if err != nil {
+		fmt.Fprintf(os.Stderr, "Got error when handling user: %v", err)
 		return nil, err
 	}
 
@@ -102,8 +108,9 @@ func RefreshTokenForUser(ctx context.Context, user *User) (*User, error) {
 func CheckIfTokenIsExpired(ctx context.Context, user *User) (*User, error) {
 	now := time.Now().UnixNano() / 1000000
 	if now > user.ExpiresAt {
-		user, err := RefreshTokenForUser(ctx, user)
+		user, err := refreshTokenForUser(ctx, user)
 		if err != nil {
+			fmt.Fprintf(os.Stderr, "Got error when handling user: %v", err)
 			return nil, err
 		}
 		return user, nil
