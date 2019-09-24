@@ -78,20 +78,10 @@ func addHandlers() {
 	http.HandleFunc("/activites", handleActivities)
 }
 
-func indexHandler(w http.ResponseWriter, r *http.Request) {
-	if r.URL.Path != "/" {
-		http.NotFound(w, r)
-		return
-	}
-	fmt.Fprint(w, "Hello, World!")
-}
-
 func main() {
 	log.SetFlags(log.LstdFlags | log.Lshortfile)
 
-	log.Println("rairai")
 	addHandlers()
-	http.HandleFunc("/", indexHandler)
 
 	port := os.Getenv("PORT")
 	if port == "" {

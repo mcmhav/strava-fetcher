@@ -1,10 +1,11 @@
-runtime: go
-api_version: go1
+runtime: go112
 
 service: strava-auth
 
 handlers:
   - url: /.*
-    script: _go_app
+    script: auto
 
 env_variables:
+  STRAVA_CLIENT_ID: '35183'
+  STRAVA_CLIENT_SECRET: '2a011442d806c32248ede63b5b1e03887774d616'

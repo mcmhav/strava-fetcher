@@ -1,4 +1,4 @@
-package stravaauth
+package main
 
 import (
 	"bytes"
@@ -13,7 +13,6 @@ import (
 
 	"cloud.google.com/go/firestore"
 	"google.golang.org/appengine"
-	"google.golang.org/appengine/urlfetch"
 )
 
 var clientID = os.Getenv("STRAVA_CLIENT_ID")
@@ -96,9 +95,9 @@ func handleAuthorizeSuccessful(w http.ResponseWriter, r *http.Request) {
 
 	var authorizeSuccessURL = "https://www.strava.com/oauth/token"
 
-	ctx := appengine.NewContext(r)
+	ctx := r.Context()
 
-	client := urlfetch.Client(ctx)
+	client := http.Client{}
 
 	resp, err := client.Post(authorizeSuccessURL, "application/json", bytes.NewBuffer(jsonValue))
 	if err != nil {
@@ -117,17 +116,16 @@ func handleAuthorizeSuccessful(w http.ResponseWriter, r *http.Request) {
 
 func addUserDataToUser(ctx context.Context, user User) {
 	projectID := appengine.AppID(ctx)
-
 	client, err := firestore.NewClient(ctx, projectID)
 	if err != nil {
-		log.Fatalf("Failed to create client: %v", err)
+		fmt.Fprintf(os.Stderr, "Failed to create client: %v", err)
 	}
 
 	defer client.Close()
 
 	_, err = client.Collection("users").Doc(strconv.FormatInt(user.Athlete.ID, 10)).Set(ctx, user)
 	if err != nil {
-		log.Fatalf("Failed adding user: %v", err)
+		fmt.Fprintf(os.Stderr, "Failed adding user: %v", err)
 	}
 }
 
@@ -138,9 +136,16 @@ func addHandlers() {
 }
 
 func main() {
-	addHandlers()
-}
+	log.SetFlags(log.LstdFlags | log.Lshortfile)
 
-func init() {
 	addHandlers()
+
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8080"
+		log.Println("Defaulting to port", port)
+	}
+
+	log.Println("Listening on port", port)
+	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%s", port), nil))
 }
