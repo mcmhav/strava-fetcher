@@ -8,13 +8,15 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+  "strconv"
 
 	"github.com/mcmhav/strava-fetcher/activities/users"
 )
 
 var after = "1546297200"
+var perPage = 100
 
-func getActivitiesURL() (*url.URL, error) {
+func getActivitiesURL(page int) (*url.URL, error) {
 	var activitiesURL = "https://www.strava.com/api/v3/athlete/activities"
 	var url, err = url.Parse(activitiesURL)
 	if err != nil {
@@ -23,9 +25,9 @@ func getActivitiesURL() (*url.URL, error) {
 	}
 	q := url.Query()
 	q.Add("after", after)
+  q.Add("per_page", strconv.Itoa(perPage))
 	// q.Add("before", "30")
-	// q.Add("page", "30")
-	// q.Add("per_page", "30")
+	q.Add("page", strconv.Itoa(page))
 
 	url.RawQuery = q.Encode()
 
@@ -36,8 +38,8 @@ type Activity struct {
 	Distance float64 `json:"distance"`
 }
 
-func GetActivitiesForUser(ctx context.Context, user *users.User) (*[]Activity, error) {
-	activitiesURL, err := getActivitiesURL()
+func getActivitiesForUserAtPage(ctx context.Context, user *users.User, page int) (*[]Activity, error) {
+	activitiesURL, err := getActivitiesURL(page)
 	var activites []Activity
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Got error when handling user: %v", err)
@@ -64,4 +66,24 @@ func GetActivitiesForUser(ctx context.Context, user *users.User) (*[]Activity, e
 	json.NewDecoder(resp.Body).Decode(&activites)
 
 	return &activites, nil
+}
+
+// GetActivitiesForUser Get activities for User. Will paginate till no more is returned.
+func GetActivitiesForUser(ctx context.Context, user *users.User) (*[]Activity, error) {
+  var pagedActivites []Activity
+  var fetchMoreActivities = true
+  var page = 1
+  for fetchMoreActivities {
+    activites, err := getActivitiesForUserAtPage(ctx, user, page)
+    if err != nil {
+      return nil, err
+    }
+    if len(*activites) < perPage {
+      fetchMoreActivities = false
+    }
+    page++
+    pagedActivites = append(pagedActivites, *activites...)
+  }
+
+  return &pagedActivites, nil
 }
